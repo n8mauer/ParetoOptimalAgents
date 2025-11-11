@@ -361,7 +361,7 @@ def predict_future(trainer, n_steps=20):
         predictions.append({
             'step': step,
             'gold_price': info['gold_price'],
-            'aluminum_price': info['aluminum_price'],
+            'commodity_price': info['commodity_price'],
             'tariff_rate': info['tariff_rate'],
             'inflation': info['inflation'],
             'trade_balance': info['trade_balance'],
