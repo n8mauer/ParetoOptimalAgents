@@ -12,9 +12,7 @@ ParetoOptimal integrates **three distinct backend agentic frameworks** working t
 
 **Purpose**: Autonomous agents that intelligently parse and extract structured data from complex economic documents.
 
-<p align="center">
-  <img src="images/images/Screenshot%202025-11-10%20121304.png" width="600"><br><br>
-</p>
+![System Screenshot](images/Screenshot%202025-11-10%20121304.png)<br>
 
 **How It Works**:
 - **Parse Agent**: Converts PDFs → Markdown with spatial grounding (bounding boxes, page structure)
