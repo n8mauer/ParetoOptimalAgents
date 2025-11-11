@@ -8,7 +8,7 @@ A production-grade, multi-layer agentic AI system for economic trading signals. 
 Because every retail investor deserves the same intelligence as Wall Street.
 
 **The Challenge**
-Picture yourself as one of 170 million retail investors in the U.S.—together trading nearly $30 billion every day—but without the data teams, quant models, or policy analysts that institutional desks take for granted.
+Picture yourself as one of 170 million retail investors in the U.S., together trading nearly $30 billion every day on NASDAQ alone, but without the data teams, quant models, or policy analysts that institutional desks take for granted.
 When tariffs shift, commodities spike, or sentiment turns overnight, the pros have playbooks; you have guesswork.
 
 **This project was built to change that.**
