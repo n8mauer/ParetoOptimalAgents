@@ -50,7 +50,7 @@ def extract_agent_contributions(predictions, trainer):
 
             agent_state = {
                 'tariff_rate': obs['tariff_rate'],
-                'aluminum_price': obs['aluminum_price'],
+                'aluminum_price': obs['commodity_price'],
                 'gold_price': obs['gold_price'],
                 'inflation': obs.get('inflation', 0),
                 'trade_balance': obs.get('trade_balance', 0),
@@ -67,7 +67,7 @@ def extract_agent_contributions(predictions, trainer):
             else:
                 # Fallback: estimate based on price trends
                 gold_trend = (obs['gold_price'] - predictions.iloc[0]['gold_price']) / predictions.iloc[0]['gold_price']
-                aluminum_trend = (obs['aluminum_price'] - predictions.iloc[0]['aluminum_price']) / predictions.iloc[0]['aluminum_price']
+                aluminum_trend = (obs['commodity_price'] - predictions.iloc[0]['commodity_price']) / predictions.iloc[0]['commodity_price']
 
                 # Different agents focus on different signals
                 if i == 0:  # Policy agent - tariff sensitive
@@ -507,7 +507,7 @@ with col1:
     st.metric("Tariff Rate", f"{step_pred['tariff_rate']*100:.2f}%")
 
 with col2:
-    st.metric("Aluminum Price", f"${step_pred['aluminum_price']:.2f}")
+    st.metric("Aluminum Price", f"${step_pred['commodity_price']:.2f}")
     st.metric("Inflation", f"{step_pred.get('inflation', 0)*100:.2f}%")
 
 with col3:
