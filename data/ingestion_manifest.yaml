@@ -1,0 +1,869 @@
+# LandingAI ADE Ingestion Manifest
+# Comprehensive document processing configuration for Economic MARL training
+# Version: 1.0
+# Last Updated: 2025-01-09
+
+metadata:
+  project: "Economic MARL - Tariff/Commodity/Gold Trading Simulator"
+  description: "Real-world data extraction for multi-agent RL environment seeding"
+  output_format: "parquet"
+  output_path: "./outputs/ade_llm_data.parquet"
+  bedrock_model: "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  bedrock_region: "us-east-1"
+
+# ============================================================================
+# 1. TARIFF RATES - Ground Truth Schedules & Legal Changes
+# ============================================================================
+
+tariff_sources:
+
+  # USITC / HTSUS Core Schedules
+  htsus_core:
+    description: "Harmonized Tariff Schedule - Current Year PDFs"
+    cadence: "rolling_revisions"
+    priority: "critical"
+    documents:
+      - name: "HTSUS Chapter 99 - TemporaryAdditional Duties"
+        url: "https://hts.usitc.gov/"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        fields:
+          - hs_code
+          - description
+          - column1_general_rate
+          - column2_special_rate
+          - special_program_indicators
+          - chapter_notes
+        ade_template: "htsus_chapter_table"
+
+      - name: "HTSUS Chapter 71 - Gold & Precious Metals"
+        url: "https://hts.usitc.gov/"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        focus: "Headings 7108.* (refined gold)"
+        fields:
+          - hs_code
+          - description
+          - rate_of_duty_ad_valorem
+          - special_rate
+          - notes
+        ade_template: "htsus_chapter_table"
+
+      - name: "HTSUS General Notes (GN3 & Chapter 99 Notes)"
+        url: "https://hts.usitc.gov/"
+        doc_type: "pdf"
+        extraction_mode: "text+structure"
+        purpose: "Conditional duty logic (e.g., when to add 9903 heading)"
+        fields:
+          - note_number
+          - note_text
+          - applicable_chapters
+          - conditional_logic
+        ade_template: "legal_notes"
+
+  # Section 301 (China) - Federal Register & USTR
+  section_301:
+    description: "China tariffs - 301 actions and modifications"
+    priority: "critical"
+    documents:
+      - name: "Notice of Modification - Section 301 Maritime Shipbuilding"
+        url: "https://www.federalregister.gov/documents/2025/10/16"
+        date: "2025-10-16"
+        doc_type: "pdf"
+        extraction_mode: "table+annex"
+        fields:
+          - hs_code
+          - description
+          - additional_duty_301
+          - effective_date
+          - annex_table_number
+        ade_template: "fr_notice_annex"
+
+      - name: "Product Exclusion Extensions"
+        url: "https://www.federalregister.gov/documents/2025/09/02"
+        date: "2025-09-02"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Exclusions materially alter effective ad-valorem rates"
+        fields:
+          - hs_code
+          - exclusion_id
+          - effective_date
+          - expiration_date
+          - modified_rate
+        ade_template: "exclusion_notice"
+
+      - name: "Notice of Action - Shipbuilding"
+        url: "https://www.federalregister.gov/documents/2025/04/23"
+        date: "2025-04-23"
+        doc_type: "pdf"
+        extraction_mode: "text+table"
+        purpose: "Policy anticipation episodes"
+        fields:
+          - proposed_hs_codes
+          - proposed_rates
+          - comment_deadline
+          - anticipated_effective_date
+        ade_template: "proposed_action"
+
+      - name: "USTR Four-Year Review Portal - Section 301"
+        url: "https://ustr.gov/issue-areas/enforcement/section-301-investigations/section-301-china"
+        doc_type: "html"
+        extraction_mode: "link_harvest+dates"
+        purpose: "Time-aware regime toggles"
+        fields:
+          - review_date
+          - fr_notice_url
+          - action_type
+          - status
+        ade_template: "policy_timeline"
+
+      - name: "Historical 301 Baselines May 2024"
+        urls:
+          - "https://www.federalregister.gov/documents/2024/09/18"  # Sept 2024 modification
+          - "https://www.federalregister.gov/documents/2024/05/30"  # May 2024 exclusions
+          - "https://www.federalregister.gov/documents/2018/09/21"  # Original 2018
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Backfill historical state"
+        fields:
+          - hs_code
+          - additional_duty_301
+          - effective_date
+          - modification_type
+        ade_template: "historical_tariff_state"
+
+      - name: "Historical 301 Baselines Sept 2024"
+        urls:
+          - "https://www.federalregister.gov/documents/2024/05/30"  # May 2024 exclusions
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Backfill historical state"
+        fields:
+          - hs_code
+          - additional_duty_301
+          - effective_date
+          - modification_type
+        ade_template: "historical_tariff_state"
+
+      - name: "Historical 301 Baselines September 2018"
+        urls:
+          - "https://www.federalregister.gov/documents/2018/09/21"  # Original 2018
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Backfill historical state"
+        fields:
+          - hs_code
+          - additional_duty_301
+          - effective_date
+          - modification_type
+        ade_template: "historical_tariff_state"
+
+  # Section 232 (Steel/Aluminum)
+  section_232:
+    description: "Steel and aluminum tariffs - proclamations and rules"
+    priority: "high"
+    documents:
+      - name: "2025 Aluminum Proclamations"
+        url: "https://www.federalregister.gov/documents/2025"
+        doc_type: "pdf"
+        extraction_mode: "proclamation_table"
+        fields:
+          - commodity_code
+          - additional_duty_232
+          - effective_date
+          - country_exclusions
+        ade_template: "proclamation_232"
+
+      - name: "Original 2018 Steel Action (Anchor Reference)"
+        url: "https://www.federalregister.gov/documents/2018/03/15"
+        date: "2018-03-15"
+        doc_type: "pdf"
+        extraction_mode: "proclamation_table"
+        purpose: "Historical starting point for 232 shock episodes"
+        fields:
+          - commodity_code
+          - additional_duty_232
+          - effective_date
+        ade_template: "historical_baseline_232"
+
+  # WTO Baselines
+  wto_baselines:
+    description: "WTO tariff data for US & China"
+    priority: "medium"
+    documents:
+      - name: "WTO Tariff Database - US Applied & Bound"
+        url: "https://ttd.wto.org/en/analysis/import-export-patterns/partners?member=C840&product=TOTAL&year=2024&classification=HS"
+        doc_type: "pdf"
+        extraction_mode: "api_programmatic"
+        fields:
+          - hs_code
+          - applied_tariff
+          - bound_tariff
+          - duty_free_share
+          - year
+        ade_template: "wto_tariff_table"
+
+      - name: "WTO Tariff Database - China Applied & Bound"
+        url: "https://ttd.wto.org/en/analysis/import-export-patterns/products?member=C840&product=TOTAL&year=2024&depth=2&classification=HS"
+        doc_type: "pdf"
+        extraction_mode: "api_programmatic"
+        fields:
+          - hs_code
+          - applied_tariff
+          - bound_tariff
+          - duty_free_share
+          - year
+        ade_template: "wto_tariff_table"
+
+      - name: "WTO Tariff Profile - United States (PDF)"
+        url: "https://www.wto.org/english/res_e/booksp_e/tariff_profiles25_e.pdf"
+        doc_type: "pdf"
+        extraction_mode: "table+text"
+        purpose: "Simple/trade-weighted averages for audit"
+        fields:
+          - category
+          - simple_average
+          - trade_weighted_average
+          - duty_free_lines_pct
+        ade_template: "tariff_profile_snapshot"
+
+      - name: "WTO Tariff Profile - China (PDF)"
+        url: "https://www.wto.org/english/res_e/booksp_e/tariff_profiles25_e.pdf"
+        doc_type: "png"
+        note: "Screenshot image, not actual PDF"
+        extraction_mode: "table+text"
+        fields:
+          - category
+          - simple_average
+          - trade_weighted_average
+          - duty_free_lines_pct
+        ade_template: "tariff_profile_snapshot"
+
+      - name: "World Tariff Profiles 20242025 (WTOITCUNCTAD)"
+        url: "https://www.wto.org/english/res_e/booksp_e/tariff_profiles24_e.pdf"
+        doc_type: "pdf"
+        extraction_mode: "comprehensive_table"
+        purpose: "Cross-economy compendium for static reference"
+        ade_template: "comprehensive_reference"
+
+  # US Reference Materials
+  us_references:
+      - name: "USITC Special Report - Economic Impact of 232 & 301 (Pub. 5405)"
+        url: "https://www.usitc.gov/publications/332/pub5405.pdf"
+        doc_type: "pdf"
+        extraction_mode: "text+calibration_tables"
+        purpose: "Calibrated counterfactuals and pass-through priors"
+        fields:
+          - sector
+          - estimated_price_impact
+          - pass_through_rate
+          - elasticity_estimate
+        ade_template: "research_calibration"
+
+# ============================================================================
+# 2. COMMODITY PRICES - Focus: Gold
+# ============================================================================
+
+commodity_prices:
+
+  # Open Multilateral Sources (Monthly)
+  world_bank:
+    description: "World Bank Pink Sheet - Monthly commodity prices"
+    cadence: "monthly"
+    priority: "critical"
+    documents:
+      - name: "Pink Sheet - Gold Spot (Monthly Average)"
+        url: "https://www.worldbank.org/en/research/commodity-markets"
+        doc_type: "pdf"
+        extraction_mode: "time_series"
+        historical_depth: "1960s-present"
+        fields:
+          - date
+          - gold_spot_usd_per_oz
+          - monthly_average
+          - data_source_note
+        ade_template: "commodity_time_series"
+
+  imf:
+    description: "IMF Primary Commodity Prices portal"
+    cadence: "monthly"
+    priority: "high"
+    documents:
+      - name: "IMF Commodity Prices - Metals (Gold)"
+        url: "https://www.imf.org/en/Research/commodity-prices"
+        doc_type: "pdf"
+        extraction_mode: "interactive_download"
+        fields:
+          - date
+          - gold_price_usd_per_oz
+          - series_code
+        ade_template: "commodity_time_series"
+
+  # Market Microstructure & Futures (Daily)
+  cme_comex:
+    description: "CME Group COMEX Gold (GC) settlements"
+    cadence: "daily"
+    priority: "critical"
+    documents:
+      - name: "COMEX Gold (GC) Daily Settlements"
+        url: "https://www.cmegroup.com/markets/metals/precious/gold.html"
+        doc_type: "png"
+        extraction_mode: "settlement_data"
+        fields:
+          - settlement_date
+          - contract_month
+          - settlement_price
+          - open
+          - high
+          - low
+          - volume
+          - open_interest
+        ade_template: "futures_settlement"
+
+      - name: "GC Contract Specifications"
+        url: "https://www.cmegroup.com/markets/metals/precious/gold.contractSpecs.html"
+        doc_type: "html"
+        extraction_mode: "structured_spec"
+        purpose: "Tick size, contract unit, settlement methodology"
+        fields:
+          - contract_size
+          - tick_size
+          - settlement_procedure
+          - trading_hours
+        ade_template: "contract_metadata"
+
+  # Supply/Demand Context
+  usgs:
+    description: "USGS Mineral Commodity Summaries - Gold"
+    cadence: "annual"
+    priority: "medium"
+    documents:
+      - name: "Mineral Commodity Summaries 2025 - Gold Chapter"
+        url: "https://www.usgs.gov/publications/mineral-commodity-summaries-2025"
+        doc_type: "pdf"
+        extraction_mode: "table+text"
+        purpose: "Production, reserves, use categories for regime priors"
+        fields:
+          - year
+          - us_production_tonnes
+          - world_production_tonnes
+          - reserves_tonnes
+          - primary_uses
+        ade_template: "mineral_summary"
+
+  world_gold_council:
+    description: "World Gold Council research and demand trends"
+    cadence: "quarterly"
+    priority: "medium"
+    documents:
+      - name: "Gold Demand Trends Q3 2025"
+        url: "https://www.gold.org/goldhub/research/gold-demand-trends"
+        doc_type: "pdf"
+        extraction_mode: "table+text"
+        purpose: "Demand flows, ETF flows, central bank purchases"
+        fields:
+          - quarter
+          - jewelry_demand_tonnes
+          - investment_demand_tonnes
+          - central_bank_purchases_tonnes
+          - etf_flows_tonnes
+          - total_supply_tonnes
+        ade_template: "demand_trends"
+
+# ============================================================================
+# 3. INFLATION RATES (US)
+# ============================================================================
+
+inflation_sources:
+
+  bls_cpi:
+    description: "Bureau of Labor Statistics - Consumer Price Index"
+    cadence: "monthly"
+    priority: "critical"
+    documents:
+      - name: "CPI-U (CUUR0000SA0) - All Items"
+        url: "https://www.bls.gov/cpi/data.htm"
+        doc_type: "png"
+        extraction_mode: "time_series"
+        series_id: "CUUR0000SA0"
+        fields:
+          - date
+          - cpi_index
+          - mom_change
+          - yoy_change
+          - seasonal_adjustment
+        ade_template: "cpi_time_series"
+
+      - name: "CPI Monthly News Release (PDF Tables)"
+        url: "https://www.bls.gov/news.release/cpi.toc.htm"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Component weights and detailed categories"
+        fields:
+          - category
+          - index_value
+          - mom_change
+          - yoy_change
+          - weight
+        ade_template: "cpi_news_release"
+
+  bls_ppi:
+    description: "Bureau of Labor Statistics - Producer Price Index"
+    cadence: "monthly"
+    priority: "high"
+    documents:
+      - name: "PPI News Release - Final Demand"
+        url: "https://www.bls.gov/ppi/"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Upstream pass-through stress tests"
+        fields:
+          - category
+          - index_value
+          - mom_change
+          - yoy_change
+          - stage_of_processing
+        ade_template: "ppi_news_release"
+
+      - name: "PPI FD-ID Index List"
+        url: "https://www.bls.gov/ppi/databases.htm"
+        doc_type: "pdf"
+        extraction_mode: "time_series"
+        fields:
+          - series_id
+          - date
+          - index_value
+        ade_template: "ppi_time_series"
+
+  bea_pce:
+    description: "Bureau of Economic Analysis - PCE Price Index"
+    cadence: "monthly"
+    priority: "critical"
+    documents:
+      - name: "PCE Price Index (Headline & Core)"
+        url: "https://www.bea.gov/data/personal-consumption-expenditures-price-index"
+        doc_type: "pdf"
+        extraction_mode: "time_series"
+        purpose: "Fed's preferred inflation gauge"
+        fields:
+          - date
+          - pce_headline_index
+          - pce_core_index
+          - mom_change_headline
+          - mom_change_core
+          - yoy_change_headline
+          - yoy_change_core
+        ade_template: "pce_time_series"
+
+# ============================================================================
+# 4. FIAT DEMAND / SENTIMENT PROXIES
+# ============================================================================
+
+sentiment_sources:
+
+  umich_sentiment:
+    description: "University of Michigan Consumer Sentiment"
+    cadence: "monthly"
+    priority: "high"
+    documents:
+      - name: "UMCSENT Index (FRED Mirror)"
+        url: "https://fred.stlouisfed.org/series/UMCSENT"
+        doc_type: "png"
+        extraction_mode: "time_series"
+        note: "One-month delay on FRED"
+        fields:
+          - date
+          - sentiment_index
+          - current_conditions
+          - expectations
+        ade_template: "sentiment_time_series"
+
+  ny_fed_sce:
+    description: "NY Fed Survey of Consumer Expectations"
+    cadence: "monthly"
+    priority: "high"
+    documents:
+      - name: "SCE MacroMicro Series Downloads"
+        url: "https://www.newyorkfed.org/microeconomics/sce"
+        doc_type: "png"
+        extraction_mode: "downloadable_series"
+        purpose: "Inflation expectations, spending, labor"
+        fields:
+          - date
+          - inflation_expectations_1yr
+          - inflation_expectations_3yr
+          - spending_expectations
+          - labor_market_expectations
+        ade_template: "sce_expectations"
+
+  conference_board:
+    description: "The Conference Board Consumer Confidence"
+    cadence: "monthly"
+    priority: "medium"
+    documents:
+      - name: "Consumer Confidence Monthly Press Release"
+        url: "https://www.conference-board.org/topics/consumer-confidence"
+        doc_type: "pdf"
+        extraction_mode: "text+headline_values"
+        fields:
+          - date
+          - confidence_index
+          - present_situation
+          - expectations
+          - press_release_text
+        ade_template: "confidence_release"
+        llm_sentiment: true  # Use Bedrock LLM for text analysis
+
+  fed_dollar_index:
+    description: "Fed H.10 Nominal Broad U.S. Dollar Index"
+    cadence: "daily"
+    priority: "critical"
+    documents:
+      - name: "DTWEXBGS - Broad Dollar Index"
+        url: "https://fred.stlouisfed.org/series/DTWEXBGS"
+        doc_type: "png"
+        extraction_mode: "time_series"
+        purpose: "Clean proxy for 'fiat demand' in markets"
+        fields:
+          - date
+          - index_value
+          - daily_change
+          - rolling_zscore_30d
+        ade_template: "dollar_index_time_series"
+
+# ============================================================================
+# 5. TRADE BALANCE (US)
+# ============================================================================
+
+trade_sources:
+
+  census_ft900:
+    description: "Census/BEA FT-900 - U.S. International Trade"
+    cadence: "monthly"
+    priority: "critical"
+    documents:
+      - name: "FT-900 Monthly Release (PDF + XLSX)"
+        url: "https://www.census.gov/foreign-trade/Press-Release/current_press_release/"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Goods/services balance, country/End-Use exhibits"
+        fields:
+          - date
+          - trade_balance_total
+          - goods_balance
+          - services_balance
+          - china_balance
+          - exhibit_number
+        ade_template: "ft900_exhibits"
+
+  bea_international:
+    description: "BEA International Transactions / Current Account"
+    cadence: "quarterly"
+    priority: "high"
+    documents:
+      - name: "Current Account Release"
+        url: "https://www.bea.gov/data/intl-trade-investment/international-transactions"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "Services detail and consistency checks"
+        fields:
+          - quarter
+          - current_account_balance
+          - goods_balance
+          - services_balance
+          - primary_income
+          - secondary_income
+        ade_template: "current_account"
+
+      - name: "Monthly News PDFs (e.g., July 2025)"
+        url: "https://www.bea.gov/news/archive"
+        doc_type: "pdf"
+        extraction_mode: "versioned_artifact"
+        purpose: "Versioned training/evaluation snapshots"
+        ade_template: "monthly_trade_snapshot"
+
+# ============================================================================
+# 6. MONETARY POLICY TEXT (FOMC)
+# ============================================================================
+
+monetary_policy:
+
+  fomc:
+    description: "FOMC Statements and Minutes"
+    cadence: "8 meetings per year"
+    priority: "high"
+    documents:
+      - name: "FOMC Calendar + Minutes Hub (2025)"
+        url: "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+        doc_type: "pdf"
+        extraction_mode: "meeting_dates+documents"
+        purpose: "Build fomc_hawkishness_score via LLM"
+        fields:
+          - meeting_date
+          - statement_text
+          - minutes_text
+          - policy_decision
+          - vote_split
+        ade_template: "fomc_meeting"
+        llm_analysis: true  # Use Bedrock for hawkishness scoring
+
+      - name: "Specific 2025 Meeting Sets"
+        urls:
+          - "https://www.federalreserve.gov/monetarypolicy/fomcminutes20250917.htm"  # Sept 16-17
+          - "https://www.federalreserve.gov/newsevents/pressreleases/monetary20251029a.htm"  # Oct 29
+        doc_type: "pdf"
+        extraction_mode: "labeled_corpora"
+        purpose: "Aligned to daily price series"
+        llm_prompts:
+          - "Extract hawkish/dovish signals regarding inflation and policy path"
+          - "Score statement on scale -1 (dovish) to +1 (hawkish)"
+        ade_template: "fomc_labeled_set"
+
+# ============================================================================
+# 7. CHINA/US BILATERAL POLICY CONTEXT
+# ============================================================================
+
+bilateral_context:
+
+  phase_one:
+    description: "Phase One Agreement - US-China"
+    priority: "medium"
+    documents:
+      - name: "Phase One Agreement Text (USTR)"
+        url: "https://ustr.gov/countries-regions/china-mongolia-taiwan/peoples-republic-china/phase-one-trade-agreement"
+        doc_type: "pdf"
+        extraction_mode: "legal_text+commitments"
+        purpose: "Backfill commitment features & historical regime meta"
+        fields:
+          - chapter
+          - commitment_text
+          - timeline
+          - enforcement_mechanism
+        ade_template: "trade_agreement"
+
+  wto_compliance:
+    description: "USTR Report to Congress on China's WTO Compliance"
+    cadence: "annual"
+    priority: "low"
+    documents:
+      - name: "2024 WTO Compliance Report"
+        url: "https://ustr.gov/about-us/policy-offices/press-office/reports-and-publications"
+        doc_type: "pdf"
+        extraction_mode: "narrative_text"
+        purpose: "Regime shifts & enforcement timeline cues"
+        llm_analysis: true
+        ade_template: "compliance_report"
+
+# ============================================================================
+# 8. MARKET POSITIONING / BEHAVIOR (OPTIONAL)
+# ============================================================================
+
+market_positioning:
+
+  cftc_cot:
+    description: "CFTC Commitments of Traders - Gold/Metals"
+    cadence: "weekly"
+    priority: "low"
+    documents:
+      - name: "COT Disaggregated Reports (Gold)"
+        url: "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+        doc_type: "txt/csv"
+        extraction_mode: "time_series"
+        purpose: "Derive leveraged_money_net for sentiment/positioning"
+        fields:
+          - report_date
+          - commodity_code
+          - producer_merchant_long
+          - producer_merchant_short
+          - swap_dealer_long
+          - swap_dealer_short
+          - money_manager_long
+          - money_manager_short
+          - other_reportable_long
+          - other_reportable_short
+        ade_template: "cot_disaggregated"
+
+# ============================================================================
+# ADE EXTRACTION TEMPLATES
+# ============================================================================
+
+ade_templates:
+
+  htsus_chapter_table:
+    description: "Standard HTSUS chapter table extraction"
+    extraction_type: "table"
+    table_detection: "auto"
+    column_mapping:
+      - source: "Heading/Subheading"
+        target: "hs_code"
+      - source: "Article Description"
+        target: "description"
+      - source: "Rates of Duty 1-General"
+        target: "column1_general_rate"
+      - source: "Rates of Duty 2"
+        target: "column2_special_rate"
+    post_processing:
+      - "normalize_hs_codes"
+      - "parse_duty_rates"
+
+  fr_notice_annex:
+    description: "Federal Register notice with annex tables"
+    extraction_type: "table+text"
+    table_detection: "annex_marker"
+    text_sections:
+      - "summary"
+      - "effective_date"
+      - "background"
+    post_processing:
+      - "extract_effective_dates"
+      - "link_annex_to_hs_codes"
+
+  commodity_time_series:
+    description: "Standard time series data extraction"
+    extraction_type: "table"
+    date_column: "auto_detect"
+    value_columns:
+      - "price"
+      - "volume"
+      - "change"
+    post_processing:
+      - "normalize_dates"
+      - "convert_to_float"
+
+  fomc_meeting:
+    description: "FOMC meeting extraction with LLM analysis"
+    extraction_type: "text"
+    llm_enabled: true
+    llm_prompts:
+      sentiment_analysis: |
+        Analyze this FOMC statement and extract:
+        1. sentiment_score: Float from -1 (very dovish) to +1 (very hawkish)
+        2. inflation_concern: Float from 0 (no concern) to 1 (high concern)
+        3. policy_path_signal: String ("tightening", "holding", "easing", "data_dependent")
+        4. key_phrases: List of strings indicating hawkish or dovish language
+        5. reasoning: String explaining the scoring
+
+        Return JSON only.
+
+# ============================================================================
+# BEDROCK LLM ANALYSIS CONFIGURATION
+# ============================================================================
+
+llm_analysis:
+  enabled: true
+  model: "anthropic.claude-3-sonnet-20240229-v1:0"
+  region: "us-east-1"
+  temperature: 0.1
+  max_tokens: 1024
+
+  # Document types requiring LLM analysis
+  analyze_documents:
+    - "fomc_meeting"
+    - "confidence_release"
+    - "compliance_report"
+    - "fr_notice_annex"
+    - "legal_notes"
+
+  # Standard prompts for different analysis types
+  prompts:
+    tariff_sentiment:
+      system: |
+        You are an economist analyzing trade policy documents. Extract structured data about tariff impacts.
+      user: |
+        Analyze this document and extract JSON with:
+        - sentiment_score: Float from -1 (negative for trade) to +1 (positive for trade)
+        - commodity_impact_pct: Expected commodity price impact as percentage
+        - gold_response_pct: Expected gold price response as percentage
+        - reasoning: Brief explanation
+
+        Document: {text}
+
+    fomc_hawkishness:
+      system: |
+        You are a monetary policy analyst. Score FOMC communications on hawkish/dovish spectrum.
+      user: |
+        Analyze this FOMC statement and provide JSON with:
+        - hawkishness_score: Float from -1 (very dovish) to +1 (very hawkish)
+        - inflation_concern: Float from 0 to 1
+        - policy_direction: String ("tightening", "neutral", "easing")
+        - key_phrases: List of significant phrases
+        - reasoning: Explanation
+
+        Statement: {text}
+
+# ============================================================================
+# PROCESSING PIPELINE CONFIGURATION
+# ============================================================================
+
+pipeline:
+
+  # Stage 1: Document Download
+  download:
+    enabled: true
+    retry_attempts: 3
+    timeout_seconds: 120
+    user_agent: "Economic-MARL-Data-Pipeline/1.0"
+
+  # Stage 2: ADE Extraction
+  extraction:
+    enabled: true
+    api_key_source: "aws_secrets_manager"  # or "environment_variable"
+    api_key_secret_name: "landingai/api_key"
+    batch_size: 10
+    parallel_processing: true
+    max_workers: 4
+
+  # Stage 3: LLM Analysis (Bedrock)
+  llm_enrichment:
+    enabled: true
+    credentials_source: "iam"  # or "environment_variables"
+    batch_size: 5
+    rate_limit_rpm: 60
+
+  # Stage 4: Data Validation
+  validation:
+    enabled: true
+    required_fields:
+      tariff:
+        - "hs_code"
+        - "tariff_rate"
+        - "effective_date"
+      commodity:
+        - "date"
+        - "gold_price"
+      inflation:
+        - "date"
+        - "cpi_index"
+
+  # Stage 5: Output Generation
+  output:
+    format: "parquet"
+    path: "./outputs/ade_llm_data.parquet"
+    schema_validation: true
+    compression: "snappy"
+    partition_by: "document_category"
+
+# ============================================================================
+# EXECUTION SCHEDULE
+# ============================================================================
+
+schedule:
+  # For production deployment
+  tariff_updates:
+    frequency: "weekly"
+    day: "monday"
+    time: "00:00"
+
+  commodity_prices:
+    frequency: "daily"
+    time: "09:00"
+
+  economic_indicators:
+    frequency: "monthly"
+    day: 1
+    time: "10:00"
+
+  policy_documents:
+    frequency: "daily"
+    time: "12:00"

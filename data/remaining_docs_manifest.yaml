@@ -1,0 +1,263 @@
+metadata:
+  bedrock_model: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+  bedrock_region: us-east-1
+  output_path: ./outputs/remaining_docs.parquet
+bilateral_context:
+  wto_compliance:
+    description: bilateral_context - wto_compliance
+    priority: low
+    documents:
+    - name: 2024 WTO Compliance Report
+      url: https://ustr.gov/about-us/policy-offices/press-office/reports-and-publications
+      doc_type: pdf
+      extraction_mode: narrative_text
+      ade_template: compliance_report
+      llm_analysis: true
+commodity_prices:
+  cme_comex:
+    description: commodity_prices - cme_comex
+    priority: critical
+    documents:
+    - name: GC Contract Specifications
+      url: https://www.cmegroup.com/markets/metals/precious/gold.contractSpecs.html
+      doc_type: html
+      extraction_mode: structured_spec
+      fields:
+      - contract_size
+      - tick_size
+      - settlement_procedure
+      - trading_hours
+      ade_template: contract_metadata
+inflation_sources:
+  bls_ppi:
+    description: inflation_sources - bls_ppi
+    priority: high
+    documents:
+    - name: PPI News Release - Final Demand
+      url: https://www.bls.gov/ppi/
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - category
+      - index_value
+      - mom_change
+      - yoy_change
+      - stage_of_processing
+      ade_template: ppi_news_release
+    - name: PPI FD-ID Index List
+      url: https://www.bls.gov/ppi/databases.htm
+      doc_type: pdf
+      extraction_mode: time_series
+      fields:
+      - series_id
+      - date
+      - index_value
+      ade_template: ppi_time_series
+  bea_pce:
+    description: inflation_sources - bea_pce
+    priority: critical
+    documents:
+    - name: PCE Price Index (Headline & Core)
+      url: https://www.bea.gov/data/personal-consumption-expenditures-price-index
+      doc_type: pdf
+      extraction_mode: time_series
+      fields:
+      - date
+      - pce_headline_index
+      - pce_core_index
+      - mom_change_headline
+      - mom_change_core
+      - yoy_change_headline
+      - yoy_change_core
+      ade_template: pce_time_series
+market_positioning:
+  cftc_cot:
+    description: market_positioning - cftc_cot
+    priority: low
+    documents:
+    - name: COT Disaggregated Reports (Gold)
+      url: https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm
+      doc_type: txt/csv
+      extraction_mode: time_series
+      fields:
+      - report_date
+      - commodity_code
+      - producer_merchant_long
+      - producer_merchant_short
+      - swap_dealer_long
+      - swap_dealer_short
+      - money_manager_long
+      - money_manager_short
+      - other_reportable_long
+      - other_reportable_short
+      ade_template: cot_disaggregated
+sentiment_sources:
+  ny_fed_sce:
+    description: sentiment_sources - ny_fed_sce
+    priority: high
+    documents:
+    - name: SCE MacroMicro Series Downloads
+      url: https://www.newyorkfed.org/microeconomics/sce
+      doc_type: png
+      extraction_mode: downloadable_series
+      fields:
+      - date
+      - inflation_expectations_1yr
+      - inflation_expectations_3yr
+      - spending_expectations
+      - labor_market_expectations
+      ade_template: sce_expectations
+  fed_dollar_index:
+    description: sentiment_sources - fed_dollar_index
+    priority: critical
+    documents:
+    - name: DTWEXBGS - Broad Dollar Index
+      url: https://fred.stlouisfed.org/series/DTWEXBGS
+      doc_type: png
+      extraction_mode: time_series
+      fields:
+      - date
+      - index_value
+      - daily_change
+      - rolling_zscore_30d
+      ade_template: dollar_index_time_series
+tariff_sources:
+  htsus_core:
+    description: tariff_sources - htsus_core
+    priority: critical
+    documents:
+    - name: HTSUS General Notes (GN3 & Chapter 99 Notes)
+      url: https://hts.usitc.gov/
+      doc_type: pdf
+      extraction_mode: text+structure
+      fields:
+      - note_number
+      - note_text
+      - applicable_chapters
+      - conditional_logic
+      ade_template: legal_notes
+  section_301:
+    description: tariff_sources - section_301
+    priority: critical
+    documents:
+    - name: Notice of Modification - Section 301 Maritime Shipbuilding
+      url: https://www.federalregister.gov/documents/2025/10/16
+      doc_type: pdf
+      extraction_mode: table+annex
+      fields:
+      - hs_code
+      - description
+      - additional_duty_301
+      - effective_date
+      - annex_table_number
+      ade_template: fr_notice_annex
+    - name: Product Exclusion Extensions
+      url: https://www.federalregister.gov/documents/2025/09/02
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - hs_code
+      - exclusion_id
+      - effective_date
+      - expiration_date
+      - modified_rate
+      ade_template: exclusion_notice
+    - name: Notice of Action - Shipbuilding
+      url: https://www.federalregister.gov/documents/2025/04/23
+      doc_type: pdf
+      extraction_mode: text+table
+      fields:
+      - proposed_hs_codes
+      - proposed_rates
+      - comment_deadline
+      - anticipated_effective_date
+      ade_template: proposed_action
+    - name: USTR Four-Year Review Portal - Section 301
+      url: https://ustr.gov/issue-areas/enforcement/section-301-investigations/section-301-china
+      doc_type: html
+      extraction_mode: link_harvest+dates
+      fields:
+      - review_date
+      - fr_notice_url
+      - action_type
+      - status
+      ade_template: policy_timeline
+    - name: Historical 301 Baselines May 2024
+      url: ''
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - hs_code
+      - additional_duty_301
+      - effective_date
+      - modification_type
+      ade_template: historical_tariff_state
+    - name: Historical 301 Baselines Sept 2024
+      url: ''
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - hs_code
+      - additional_duty_301
+      - effective_date
+      - modification_type
+      ade_template: historical_tariff_state
+    - name: Historical 301 Baselines September 2018
+      url: ''
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - hs_code
+      - additional_duty_301
+      - effective_date
+      - modification_type
+      ade_template: historical_tariff_state
+  section_232:
+    description: tariff_sources - section_232
+    priority: high
+    documents:
+    - name: 2025 Aluminum Proclamations
+      url: https://www.federalregister.gov/documents/2025
+      doc_type: pdf
+      extraction_mode: proclamation_table
+      fields:
+      - commodity_code
+      - additional_duty_232
+      - effective_date
+      - country_exclusions
+      ade_template: proclamation_232
+    - name: Original 2018 Steel Action (Anchor Reference)
+      url: https://www.federalregister.gov/documents/2018/03/15
+      doc_type: pdf
+      extraction_mode: proclamation_table
+      fields:
+      - commodity_code
+      - additional_duty_232
+      - effective_date
+      ade_template: historical_baseline_232
+  wto_baselines:
+    description: tariff_sources - wto_baselines
+    priority: medium
+    documents:
+    - name: World Tariff Profiles 20242025 (WTOITCUNCTAD)
+      url: https://www.wto.org/english/res_e/booksp_e/tariff_profiles24_e.pdf
+      doc_type: pdf
+      extraction_mode: comprehensive_table
+      ade_template: comprehensive_reference
+trade_sources:
+  bea_international:
+    description: trade_sources - bea_international
+    priority: high
+    documents:
+    - name: Current Account Release
+      url: https://www.bea.gov/data/intl-trade-investment/international-transactions
+      doc_type: pdf
+      extraction_mode: table
+      fields:
+      - quarter
+      - current_account_balance
+      - goods_balance
+      - services_balance
+      - primary_income
+      - secondary_income
+      ade_template: current_account

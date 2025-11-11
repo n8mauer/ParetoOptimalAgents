@@ -1,0 +1,51 @@
+# Minimal manifest for processing only the 2 LLM-enabled documents
+# Use this to re-run Bedrock enrichment after fixing the bug
+
+metadata:
+  bedrock_model: "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  bedrock_region: "us-east-1"
+  output_path: "./outputs/llm_enriched_only.parquet"
+
+# ============================================================================
+# MONETARY POLICY (1 LLM-enabled document)
+# ============================================================================
+
+monetary_policy:
+
+  fomc_calendar:
+    description: "FOMC Meeting Calendar & Statements"
+    cadence: "8x/year"
+    priority: "high"
+    documents:
+      - name: "FOMC Calendar + Minutes Hub (2025)"
+        url: "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+        doc_type: "pdf"
+        extraction_mode: "meeting_dates+documents"
+        purpose: "Build fomc_hawkishness_score via LLM"
+        fields:
+          - meeting_date
+          - statement_text
+          - minutes_text
+          - policy_decision
+          - vote_split
+        ade_template: "fomc_meeting"
+        llm_analysis: true  # Use Bedrock for hawkishness scoring
+
+# ============================================================================
+# BILATERAL CONTEXT (1 LLM-enabled document)
+# ============================================================================
+
+bilateral_context:
+
+  wto_compliance:
+    description: "USTR Report to Congress on China's WTO Compliance"
+    cadence: "annual"
+    priority: "low"
+    documents:
+      - name: "2024 WTO Compliance Report"
+        url: "https://ustr.gov/about-us/policy-offices/press-office/reports-and-publications"
+        doc_type: "pdf"
+        extraction_mode: "narrative_text"
+        purpose: "Regime shifts & enforcement timeline cues"
+        llm_analysis: true
+        ade_template: "compliance_report"

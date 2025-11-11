@@ -1,0 +1,30 @@
+pipeline:
+  name: "economic-marl-nightly"
+  schedule: "cron(0 2 * * ? *)"   # Run daily at 2AM UTC
+
+data_sources:
+  s3_input_prefix: "s3://economic-marl-data/landingai/"
+  schema_path: "schema/data_schema.yaml"
+  processed_output: "s3://economic-marl-data/processed/"
+
+compute:
+  region: "us-east-1"
+  instance_type: "ml.p3.8xlarge"
+  volume_size_gb: 100
+  max_runtime_hours: 6
+
+training_job:
+  image_uri: "123456789012.dkr.ecr.us-east-1.amazonaws.com/economic-marl:latest"
+  entry_point: "src/economic_marl/cli.py"
+  hyperparameters:
+    episodes: 10000
+    gamma: 0.99
+    batch_size: 256
+    algo: "maddpg"
+  output_path: "s3://economic-marl-results/checkpoints/"
+  enable_spot_instances: true
+
+notifications:
+  sns_topic: "arn:aws:sns:us-east-1:123456789012:economic-marl-notifications"
+  on_failure: true
+  on_success: true

@@ -1,0 +1,50 @@
+# Manifest for documents that hit rate limit (429 errors)
+# Run this after waiting 5-10 minutes for rate limit to reset
+
+metadata:
+  bedrock_model: "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  bedrock_region: "us-east-1"
+  output_path: "./outputs/rate_limited_retry.parquet"
+
+tariff_sources:
+  # USTR Section 301 Historical Baselines
+  section_301_tariffs:
+    description: "Historical Section 301 Tariff Schedules"
+    cadence: "major_updates"
+    priority: "critical"
+    documents:
+      - name: "Historical 301 Baselines May 2024"
+        url: "https://ustr.gov/sites/default/files/enforcement/301Investigations/301%20Tariff%20Actions%20May%202024.pdf"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "section_301_rates"
+        fields:
+          - hts_code
+          - country
+          - tariff_rate
+          - effective_date
+        ade_template: "tariff_schedule"
+
+      - name: "Historical 301 Baselines Sept 2024"
+        url: "https://ustr.gov/sites/default/files/enforcement/301Investigations/301%20Tariff%20Actions%20September%202024.pdf"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "section_301_rates"
+        fields:
+          - hts_code
+          - country
+          - tariff_rate
+          - effective_date
+        ade_template: "tariff_schedule"
+
+      - name: "Historical 301 Baselines September 2018"
+        url: "https://ustr.gov/sites/default/files/enforcement/301Investigations/301%20Tariff%20Actions%20September%202018.pdf"
+        doc_type: "pdf"
+        extraction_mode: "table"
+        purpose: "section_301_rates"
+        fields:
+          - hts_code
+          - country
+          - tariff_rate
+          - effective_date
+        ade_template: "tariff_schedule"
