@@ -12,8 +12,6 @@ ParetoOptimal integrates **three distinct backend agentic frameworks** working t
 
 **Purpose**: Autonomous agents that intelligently parse and extract structured data from complex economic documents.
 
-![System Screenshot](images/Screenshot%202025-11-10%20121304.png)<br>
-
 **How It Works**:
 - **Parse Agent**: Converts PDFs → Markdown with spatial grounding (bounding boxes, page structure)
 - **Extract Agent**: Uses schema-driven extraction to identify and extract specific fields (tariff rates, HS codes, dates)
@@ -56,6 +54,12 @@ Output: Structured tariff records
   - Monotonic mixing: Better individual performance → better global outcomes
   - Credit assignment: Agents learn which actions contributed to success
   - Decentralized execution: Agents act independently using local observations
+
+<p align="center">
+  <img src="images/Screenshot%202025-11-10%20121304.png" alt="System Screenshot" width="600"><br>
+  <em>This figure shows the full RL notation for the coordination of ParetoOptimal agents through a centralized-training, decentralized-execution (CTDE) setup combining MADDPG and QMIX to train per‑agent policies with a centralized, monotone‑mixed team critic so that local improvements (measured by each 𝑢_𝑖) are guaranteed to translate into higher team value 𝑄_"tot" , enabling decentralized greedy execution that is aligned with the global objective.
+.</em>
+</p>
 
 **Training Loop**:
 ```python
