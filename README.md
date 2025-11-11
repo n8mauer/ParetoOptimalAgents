@@ -1,5 +1,7 @@
 # ParetoOptimal - Multi-Agent Economic Trading System
 
+> [Launch the Live App](https://paretooptimalagents-e7henrfjxxuiwavegcej57.streamlit.app/)
+
 **LandingAI AI Financial Hackathon Championship**
 
 A production-grade, multi-layer agentic AI system for economic trading signals. Combines **LandingAI Agentic Document Extraction (ADE)**, **Multi-Agent Reinforcement Learning (MADDPG + QMIX)**, and **AWS Bedrock LLM reasoning** to extract real-world economic data and learn Pareto-optimal trading strategies.
@@ -674,11 +676,9 @@ Or configure via: `aws configure`
 - `bedrock:InvokeModel`
 - `bedrock:ListFoundationModels`
 
-## Error Messages
-
-If you see these errors, credentials are missing:
-
 ## Notes
 
 - ADE and Bedrock are **REQUIRED** at runtime; the system will fail fast with clear error messages if not configured.
 - QMIX mixing network enforces Pareto coordination between agents (can be disabled in config).
+- ParetoOptimal is not a registered investment advisor. This tool is for educational purposes only. Not investment advice. Consult a professional.
+
