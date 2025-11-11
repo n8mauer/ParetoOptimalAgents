@@ -58,7 +58,7 @@ Output: Structured tariff records
 > <p align="left">
 >  <img src="images/Screenshot%202025-11-10%20121304.png" alt="System Screenshot" width="600"><br>
 >  </p>
->> This figure shows the full RL notation for the coordination of ParetoOptimal agents through a centralized-training, decentralized-execution (CTDE) setup combining MADDPG and QMIX to train per‑agent policies with a centralized, monotone‑mixed team critic so that local improvements (measured by each 𝑢_𝑖) are guaranteed to translate into higher team value 𝑄_"tot" , enabling decentralized greedy execution that is aligned with the global objective.
+> This figure shows the full RL notation for the coordination of ParetoOptimal agents through a centralized-training, decentralized-execution (CTDE) setup combining MADDPG and QMIX to train per‑agent policies with a centralized, monotone‑mixed team critic so that local improvements (measured by each 𝑢_𝑖) are guaranteed to translate into higher team value 𝑄_"tot" , enabling decentralized greedy execution that is aligned with the global objective.
 
 **Training Loop**:
 ```python
