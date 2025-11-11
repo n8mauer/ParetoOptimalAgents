@@ -203,7 +203,7 @@ cp .env.example .env
 # Edit .env with your AWS credentials and LandingAI API key
 ```
 
-> **Credentials**: Configure AWS and LandingAI credentials securely using AWS Secrets Manager (recommended) or environment variables. See [AWS_STATUS.md](AWS_STATUS.md) and `.env.example`.
+> **Credentials**: Configure AWS and LandingAI credentials securely using AWS Secrets Manager (recommended) or environment variables. See `.env.backup`.
 
 ### 2. Data Preprocessing (Optional - Enhanced Training)
 
@@ -599,7 +599,7 @@ class EconomicEnv(gym.Env):
             # Samples from real tariff_rates, commodity_impacts, etc.
 ```
 
-**Seeding logic** ([data_seeder.py:127-170](src/economic_marl/environment/data_seeder.py:127-170)):
+**Seeding logic** ([`data_seeder.py`](https://github.com/n8mauer/ParetoOptimalAgents/blob/main/src/economic_marl/environment/data_seeder.py#L127-L170)):
 - `tariff_rate`: Direct sample from ADE-extracted rates
 - `commodity_price`: Base price × (1 + `commodity_impact_pct` from LLM)
 - `gold_price`: Base price × (1 + `gold_response_pct` from LLM)
