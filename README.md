@@ -4,15 +4,16 @@
 
 A production-grade, multi-layer agentic AI system for economic trading signals. Combines **LandingAI Agentic Document Extraction (ADE)**, **Multi-Agent Reinforcement Learning (MADDPG + QMIX)**, and **AWS Bedrock LLM reasoning** to extract real-world economic data and learn Pareto-optimal trading strategies.
 
-**Why Build**
+**Why Build.**
 Because every retail investor deserves the same intelligence as Wall Street.
 
-**The Challenge**
+**The Challenge.**
 Picture yourself as one of 170 million retail investors in the U.S., together trading nearly $30 billion every day on NASDAQ alone, but without the data teams, quant models, or policy analysts that institutional desks take for granted.
 When tariffs shift, commodities spike, or sentiment turns overnight, the pros have playbooks; you have guesswork.
 
 **This project was built to change that.**
 The platform brings institutional-grade intelligence to individual investors. Instead of reacting to headlines, retail investors gain an adaptive system that learns from macro-events and translates complex signals into coordinated trading insights: reducing noise, improving timing, and restoring confidence in every decision. Through a multi-page trading signal platform that includes dynamic pricing based on your preference and visualizations to easily see what will happen with your trade.
+
 ## Agentic System Overview
 
 ParetoOptimal integrates **three distinct backend agentic frameworks** working together to process economic documents, learn trading strategies, and generate coordinated investment signals.
