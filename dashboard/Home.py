@@ -33,7 +33,7 @@ def generate_synthetic_predictions(trainer, n_steps=20, seed=None):
     obs, _ = env.reset()
 
     # Extract initial state from observation
-    # state_dim = 6: [tariff_rate, aluminum_price, gold_price, inflation, trade_balance, fiat_demand]
+    # state_dim = 6: [tariff_rate, commodity_price, gold_price, inflation, trade_balance, fiat_demand]
     initial_state = obs[0, :] # First agent's observation
 
     initial_aluminum = float(initial_state[1])
@@ -80,7 +80,7 @@ def generate_synthetic_predictions(trainer, n_steps=20, seed=None):
             # Commodities fall with higher tariffs (trade friction)
             aluminum_drift = -0.0005 * (tariff - 0.0485) * 100
             aluminum_shock = np.random.normal(0, base_aluminum_volatility)
-            aluminum = predictions[-1]['aluminum_price'] * (1 + aluminum_drift + aluminum_shock)
+            aluminum = predictions[-1]['commodity_price'] * (1 + aluminum_drift + aluminum_shock)
 
         # Inflation: correlated with tariff changes
         if step == 0:
@@ -109,7 +109,7 @@ def generate_synthetic_predictions(trainer, n_steps=20, seed=None):
         predictions.append({
             'step': step,
             'gold_price': gold,
-            'aluminum_price': aluminum,
+            'commodity_price': aluminum,
             'tariff_rate': tariff,
             'inflation': inflation,
             'trade_balance': trade_balance,
@@ -169,8 +169,8 @@ def generate_market_summary(predictions, signals, position_type, training_data_s
     gold_final = final['gold_price']
     gold_change = ((gold_final - gold_initial) / gold_initial) * 100
 
-    aluminum_initial = initial['aluminum_price']
-    aluminum_final = final['aluminum_price']
+    aluminum_initial = initial['commodity_price']
+    aluminum_final = final['commodity_price']
     aluminum_change = ((aluminum_final - aluminum_initial) / aluminum_initial) * 100
 
     tariff_initial = initial['tariff_rate'] * 100
@@ -182,7 +182,7 @@ def generate_market_summary(predictions, signals, position_type, training_data_s
 
     # Calculate volatility
     gold_vol = predictions['gold_price'].std() / predictions['gold_price'].mean() * 100
-    aluminum_vol = predictions['aluminum_price'].std() / predictions['aluminum_price'].mean() * 100
+    aluminum_vol = predictions['commodity_price'].std() / predictions['commodity_price'].mean() * 100
 
     # Determine market sentiment
     if gold_change > 1.0:
@@ -385,7 +385,7 @@ def predict_future(trainer, n_steps=20):
         # Check if prices are static (0% change)
         if len(df) >= 2:
             gold_change = abs(df.iloc[-1]['gold_price'] - df.iloc[0]['gold_price'])
-            aluminum_change = abs(df.iloc[-1]['aluminum_price'] - df.iloc[0]['aluminum_price'])
+            aluminum_change = abs(df.iloc[-1]['commodity_price'] - df.iloc[0]['commodity_price'])
 
             # If both are essentially unchanged, use synthetic
             if gold_change < 0.01 and aluminum_change < 0.01:
@@ -406,11 +406,11 @@ def generate_signals(predictions: pd.DataFrame, position_type: str, threshold: f
 
     # Calculate trends
     gold_trend = (final['gold_price'] - initial['gold_price']) / initial['gold_price']
-    aluminum_trend = (final['aluminum_price'] - initial['aluminum_price']) / initial['aluminum_price']
+    aluminum_trend = (final['commodity_price'] - initial['commodity_price']) / initial['commodity_price']
 
     # Volatility
     gold_vol = predictions['gold_price'].std() / predictions['gold_price'].mean()
-    aluminum_vol = predictions['aluminum_price'].std() / predictions['aluminum_price'].mean()
+    aluminum_vol = predictions['commodity_price'].std() / predictions['commodity_price'].mean()
 
     # QMIX confidence
     if predictions['q_tot'].notna().any():
@@ -438,8 +438,8 @@ def generate_signals(predictions: pd.DataFrame, position_type: str, threshold: f
             asset='Gold'
         ),
         'aluminum': create_signal(
-            initial_price=initial['aluminum_price'],
-            final_price=final['aluminum_price'],
+            initial_price=initial['commodity_price'],
+            final_price=final['commodity_price'],
             trend=aluminum_trend,
             volatility=aluminum_vol,
             position=position_type,
@@ -878,7 +878,7 @@ if 'signals' in st.session_state:
     ax1.grid(True, alpha=0.3)
 
     # Aluminum chart
-    ax2.plot(predictions['step'], predictions['aluminum_price'], 'o-', color='brown', linewidth=2)
+    ax2.plot(predictions['step'], predictions['commodity_price'], 'o-', color='brown', linewidth=2)
     ax2.axhline(y=aluminum['initial_price'], color='blue', linestyle='--', label='Initial', linewidth=2)
     ax2.set_title('Aluminum Price Prediction', fontsize=14, fontweight='bold')
     ax2.set_xlabel('Steps Ahead')
