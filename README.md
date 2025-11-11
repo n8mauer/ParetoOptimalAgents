@@ -1,7 +1,5 @@
 # ParetoOptimal - Multi-Agent Economic Trading System
 
-> [Launch the Live App](https://paretooptimalagents-e7henrfjxxuiwavegcej57.streamlit.app/)
-
 **LandingAI AI Financial Hackathon Championship**
 
 A production-grade, multi-layer agentic AI system for economic trading signals. Combines **LandingAI Agentic Document Extraction (ADE)**, **Multi-Agent Reinforcement Learning (MADDPG + QMIX)**, and **AWS Bedrock LLM reasoning** to extract real-world economic data and learn Pareto-optimal trading strategies.
@@ -15,6 +13,9 @@ When tariffs shift, commodities spike, or sentiment turns overnight, the pros ha
 
 **This project was built to change that.**
 The platform brings institutional-grade intelligence to individual investors. Instead of reacting to headlines, retail investors gain an adaptive system that learns from macro-events and translates complex signals into coordinated trading insights: reducing noise, improving timing, and restoring confidence in every decision. Through a multi-page trading signal platform that includes dynamic pricing based on your preference and visualizations to easily see what will happen with your trade.
+
+**Experience the live app in action with real-time configurations.** 
+The interactive prototype is aviable, where you can configure parameters, generate signals, and visualize results. [Launch the ParetoOptimal App](https://paretooptimalagents-e7henrfjxxuiwavegcej57.streamlit.app/)
 
 ## Agentic System Overview
 
