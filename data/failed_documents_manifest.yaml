@@ -1,0 +1,66 @@
+# Manifest for reprocessing documents that failed due to insufficient LandingAI credits
+# Run this after adding credits to your LandingAI account
+
+metadata:
+  bedrock_model: "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  bedrock_region: "us-east-1"
+  output_path: "./outputs/failed_docs_retry.parquet"
+
+# ============================================================================
+# MONETARY POLICY (2 documents that failed)
+# ============================================================================
+
+monetary_policy:
+
+  fomc_calendar:
+    description: "FOMC Meeting Calendar & Statements"
+    cadence: "8x/year"
+    priority: "high"
+    documents:
+      - name: "FOMC Calendar + Minutes Hub (2025)"
+        url: "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+        doc_type: "pdf"
+        extraction_mode: "meeting_dates+documents"
+        purpose: "Build fomc_hawkishness_score via LLM"
+        fields:
+          - meeting_date
+          - statement_text
+          - minutes_text
+          - policy_decision
+          - vote_split
+        ade_template: "fomc_meeting"
+        llm_analysis: true  # Use Bedrock for hawkishness scoring
+
+      - name: "Specific 2025 Meeting Sets"
+        urls:
+          - "https://www.federalreserve.gov/monetarypolicy/fomcminutes20250917.htm"
+          - "https://www.federalreserve.gov/newsevents/pressreleases/monetary20251029a.htm"
+        doc_type: "pdf"
+        extraction_mode: "labeled_corpora"
+        purpose: "Aligned to daily price series"
+        llm_prompts:
+          - "Extract hawkish/dovish signals regarding inflation and policy path"
+          - "Score statement on scale -1 (dovish) to +1 (hawkish)"
+        ade_template: "fomc_labeled_set"
+
+# ============================================================================
+# BILATERAL CONTEXT (1 document that failed)
+# ============================================================================
+
+bilateral_context:
+
+  phase_one:
+    description: "Phase One Agreement - US-China"
+    priority: "medium"
+    documents:
+      - name: "Phase One Agreement Text (USTR)"
+        url: "https://ustr.gov/countries-regions/china-mongolia-taiwan/peoples-republic-china/phase-one-trade-agreement"
+        doc_type: "pdf"
+        extraction_mode: "legal_text+commitments"
+        purpose: "Backfill commitment features & historical regime meta"
+        fields:
+          - chapter
+          - commitment_text
+          - timeline
+          - enforcement_mechanism
+        ade_template: "trade_agreement"
