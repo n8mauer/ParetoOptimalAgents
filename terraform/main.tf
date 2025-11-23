@@ -12,23 +12,23 @@ resource "aws_s3_bucket" "marl_data" {
 
 resource "aws_s3_bucket" "marl_results" {
   bucket = "economic-marl-results"
-}
 
-versioning {
-  enabled = true
-}
-
-lifecycle_rule {
-  id      = "expire-noncurrent-versions"
-  enabled = true
-
-  noncurrent_version_transition {
-    days          = 90
-    storage_class = "STANDARD_IA"
+  versioning {
+    enabled = true
   }
 
-  noncurrent_version_expiration {
-    days = 365
-  }
+    lifecycle_rule {
+      id      = "expire-noncurrent-versions"
+      enabled = true
+
+      noncurrent_version_transition {
+        days          = 90
+        storage_class = "STANDARD_IA"
+      }
+
+      noncurrent_version_expiration {
+        days = 365
+      }
+    }
 }
 # Add IAM roles, EventBridge schedules, and SageMaker training jobs as needed.
